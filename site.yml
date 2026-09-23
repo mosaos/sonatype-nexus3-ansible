@@ -1,0 +1,11 @@
+- hosts: nexus_repository_manager
+
+  roles:
+    - system
+    - nexus
+    - nginx
+#    - apache
+  post_tasks:
+    - name: Completed
+      debug:
+        msg='Installation completed.'

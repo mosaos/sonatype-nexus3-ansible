@@ -1,0 +1,22 @@
+- name: Install apache
+  dnf:
+    name: `httpd`
+
+- name: Create nexus.conf
+  become: yes
+  template:
+    src: nexus.conf
+    dest: /etc/httpd/conf.d/nexus.conf
+
+- name: Create deflate.conf
+  become: yes
+  template:
+    src: deflate.conf
+    dest: /etc/httpd/conf.d/deflate.conf
+
+- name: Restart httpd
+  become: yes
+  service:
+    name: httpd
+    state: restarted
+    enabled: yes

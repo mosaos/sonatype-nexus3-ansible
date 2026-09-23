@@ -1,0 +1,6 @@
+# work directory
+work_dir: /opt/sonatype-work
+
+# owner / group
+nexus_owner: nexus
+nexus_group: nexus

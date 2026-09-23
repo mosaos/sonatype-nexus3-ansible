@@ -1,0 +1,65 @@
+- name: Install openjdk 1.8
+  dnf:
+    name: 'java-1.8.0-openjdk'
+
+- name: Checkout nexus source and extract it
+  unarchive:
+    src: https://download.sonatype.com/nexus/3/latest-unix.tar.gz
+    dest: "/opt"
+    remote_src: yes
+    owner: "{{ nexus_owner }}"
+    group: "{{ nexus_group }}"
+
+- name: get directory name of nexus
+  shell: ls /opt | grep nexus-
+  register: nexusdirname
+
+- name: Create symlink
+  file:
+    src: "/opt/{{ nexusdirname.stdout }}"
+    dest: "/opt/nexus"
+    state: link
+
+- name: Change owner of nexus directory
+  file:
+    path: "/opt/nexus"
+    state: directory
+    owner: "{{ nexus_owner }}"
+    group: "{{ nexus_group }}"
+    recurse: yes
+
+- name: create work directory
+  file:
+    path: "{{ work_dir }}"
+    state: directory
+    owner: "{{ nexus_owner }}"
+    group: "{{ nexus_group }}"
+    recurse: yes
+    mode: 0755
+
+- name: Create systemd file
+  template:
+    src: nexus.service
+    dest: /etc/systemd/system/nexus.service
+
+- name: start nexus service
+  service:
+    name: nexus
+    state: restarted
+    enabled: yes
+
+# - name: Check firewalld state
+#   shell: firewall-cmd --state
+#   register: firewall_state
+#   ignore_errors: yes
+#   changed_when: false
+#   check_mode: no
+#
+# - name: Allow 8081/tcp
+#   firewalld:
+#     zone: public
+#     port: 8081/tcp
+#     permanent: yes
+#     state: enabled
+#     immediate: yes
+#   when: firewall_state.rc == 0

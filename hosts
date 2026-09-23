@@ -1,0 +1,2 @@
+[nexus_repository_manager]
+localhost ansible_connection=local

@@ -1,0 +1,52 @@
+---
+- name: install packages
+  dnf:
+    name: 'tar'
+
+- name: determine available groups
+  getent:
+    database: group
+
+- name: determine available users
+  getent:
+    database: passwd
+
+- name: set fact when user exists
+  set_fact:
+    user_exists: true
+  when: nexus_owner in item.key
+  loop: "{{ ansible_facts.getent_passwd | dict2items }}"
+
+- name: set fact when user does not exists
+  set_fact:
+    user_exists: false
+  when: nexus_owner not in item.key
+  loop: "{{ ansible_facts.getent_passwd | dict2items }}"
+
+- name: add nexus group
+  group:
+    name: "{{ nexus_group }}"
+  when: nexus_group not in ansible_facts.getent_group
+
+- name: add nexus user
+  user:
+    name: "{{ nexus_owner }}"
+    state: present
+    groups: "{{ nexus_group }}"
+  when:
+    - not user_exists
+
+- name: edit limit.conf
+  lineinfile:
+    dest: /etc/security/limits.conf
+    line: "{{ nexus_owner }} - nofile 65536"
+
+# - name: firewalldでHTTPを許可
+#   become: yes
+#   firewalld:
+#     zone=public
+#     service=http
+#     permanent=yes
+#     state=enabled
+#     immediate=yes
+#   when: firewall_state.rc == 0
